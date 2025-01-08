@@ -1,0 +1,365 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+// Data structures
+typedef struct Resistance {
+    int num_serie;       // Serial number
+    float valeur_ohms;   // Value in ohms
+    int quantity;        // Quantity in stock
+    struct Resistance* next; // Pointer to the next resistor
+} Resistance;
+
+typedef struct Diode {
+    int num_serie;       // Serial number
+    int quantity;        // Quantity in stock
+    struct Diode* next;  // Pointer to the next diode
+} Diode;
+
+typedef struct Condensateur {
+    int num_serie;       // Serial number
+    float capacite_farads; // Capacitance in farads
+    int quantity;        // Quantity in stock
+    struct Condensateur* next; // Pointer to the next capacitor
+} Condensateur;
+
+typedef struct Stock {
+    Resistance* resistances;   // List of resistors
+    Diode* diodes;             // List of diodes
+    Condensateur* condensateurs; // List of capacitors
+} Stock;
+
+// Function prototypes
+void add_resistance(Stock* stock, int num_serie, float valeur_ohms, int quantity);
+void add_diode(Stock* stock, int num_serie, int quantity);
+void add_condensateur(Stock* stock, int num_serie, float capacite_farads, int quantity);
+void delete_resistance(Stock* stock, int num_serie);
+void delete_diode(Stock* stock, int num_serie);
+void delete_condensateur(Stock* stock, int num_serie);
+void display_stock(Stock* stock);
+void write_to_security_log(const char* task, const char* details);
+void write_to_fiche_compos(Stock* stock);
+void menu(Stock* stock);
+
+// Main program
+int main() {
+    Stock stock = {NULL, NULL, NULL}; // Initialize an empty stock
+    menu(&stock); // Start the interactive menu
+    return 0;
+}
+
+// Add a resistor
+void add_resistance(Stock* stock, int num_serie, float valeur_ohms, int quantity) {
+    Resistance* new_resistance = (Resistance*)malloc(sizeof(Resistance));
+    new_resistance->num_serie = num_serie;
+    new_resistance->valeur_ohms = valeur_ohms;
+    new_resistance->quantity = quantity;
+    new_resistance->next = stock->resistances;
+    stock->resistances = new_resistance;
+    printf("Resistor added successfully!\n");
+
+    // Log the task
+    char details[100];
+    sprintf(details, "Added Resistor: Serial Number = %d, Value = %.2f ohms, Quantity = %d", num_serie, valeur_ohms, quantity);
+    write_to_security_log("Add Resistor", details);
+
+    // Update the component file
+    write_to_fiche_compos(stock);
+}
+
+// Add a diode
+void add_diode(Stock* stock, int num_serie, int quantity) {
+    Diode* new_diode = (Diode*)malloc(sizeof(Diode));
+    new_diode->num_serie = num_serie;
+    new_diode->quantity = quantity;
+    new_diode->next = stock->diodes;
+    stock->diodes = new_diode;
+    printf("Diode added successfully!\n");
+
+    // Log the task
+    char details[100];
+    sprintf(details, "Added Diode: Serial Number = %d, Quantity = %d", num_serie, quantity);
+    write_to_security_log("Add Diode", details);
+
+    // Update the component file
+    write_to_fiche_compos(stock);
+}
+
+// Add a capacitor
+void add_condensateur(Stock* stock, int num_serie, float capacite_farads, int quantity) {
+    Condensateur* new_condensateur = (Condensateur*)malloc(sizeof(Condensateur));
+    new_condensateur->num_serie = num_serie;
+    new_condensateur->capacite_farads = capacite_farads;
+    new_condensateur->quantity = quantity;
+    new_condensateur->next = stock->condensateurs;
+    stock->condensateurs = new_condensateur;
+    printf("Capacitor added successfully!\n");
+
+    // Log the task
+    char details[100];
+    sprintf(details, "Added Capacitor: Serial Number = %d, Capacitance = %.2f farads, Quantity = %d", num_serie, capacite_farads, quantity);
+    write_to_security_log("Add Capacitor", details);
+
+    // Update the component file
+    write_to_fiche_compos(stock);
+}
+
+// Delete a resistor
+void delete_resistance(Stock* stock, int num_serie) {
+    Resistance* current = stock->resistances;
+    Resistance* previous = NULL;
+
+    while (current != NULL) {
+        if (current->num_serie == num_serie) {
+            if (previous == NULL) {
+                stock->resistances = current->next;
+            } else {
+                previous->next = current->next;
+            }
+            free(current);
+            printf("Resistor deleted successfully!\n");
+
+            // Log the task
+            char details[100];
+            sprintf(details, "Deleted Resistor: Serial Number = %d", num_serie);
+            write_to_security_log("Delete Resistor", details);
+
+            // Update the component file
+            write_to_fiche_compos(stock);
+            return;
+        }
+        previous = current;
+        current = current->next;
+    }
+    printf("Resistor with serial number %d not found!\n", num_serie);
+}
+
+// Delete a diode
+void delete_diode(Stock* stock, int num_serie) {
+    Diode* current = stock->diodes;
+    Diode* previous = NULL;
+
+    while (current != NULL) {
+        if (current->num_serie == num_serie) {
+            if (previous == NULL) {
+                stock->diodes = current->next;
+            } else {
+                previous->next = current->next;
+            }
+            free(current);
+            printf("Diode deleted successfully!\n");
+
+            // Log the task
+            char details[100];
+            sprintf(details, "Deleted Diode: Serial Number = %d", num_serie);
+            write_to_security_log("Delete Diode", details);
+
+            // Update the component file
+            write_to_fiche_compos(stock);
+            return;
+        }
+        previous = current;
+        current = current->next;
+    }
+    printf("Diode with serial number %d not found!\n", num_serie);
+}
+
+// Delete a capacitor
+void delete_condensateur(Stock* stock, int num_serie) {
+    Condensateur* current = stock->condensateurs;
+    Condensateur* previous = NULL;
+
+    while (current != NULL) {
+        if (current->num_serie == num_serie) {
+            if (previous == NULL) {
+                stock->condensateurs = current->next;
+            } else {
+                previous->next = current->next;
+            }
+            free(current);
+            printf("Capacitor deleted successfully!\n");
+
+            // Log the task
+            char details[100];
+            sprintf(details, "Deleted Capacitor: Serial Number = %d", num_serie);
+            write_to_security_log("Delete Capacitor", details);
+
+            // Update the component file
+            write_to_fiche_compos(stock);
+            return;
+        }
+        previous = current;
+        current = current->next;
+    }
+    printf("Capacitor with serial number %d not found!\n", num_serie);
+}
+
+// Display the stock
+void display_stock(Stock* stock) {
+    // Display resistors
+    Resistance* current_res = stock->resistances;
+    printf("Resistors:\n");
+    while (current_res != NULL) {
+        printf("Serial number: %d, Value: %.2f ohms, Quantity: %d\n",
+               current_res->num_serie, current_res->valeur_ohms, current_res->quantity);
+        current_res = current_res->next;
+    }
+
+    // Display diodes
+    Diode* current_diode = stock->diodes;
+    printf("\nDiodes:\n");
+    while (current_diode != NULL) {
+        printf("Serial number: %d, Quantity: %d\n",
+               current_diode->num_serie, current_diode->quantity);
+        current_diode = current_diode->next;
+    }
+
+    // Display capacitors
+    Condensateur* current_cond = stock->condensateurs;
+    printf("\nCapacitors:\n");
+    while (current_cond != NULL) {
+        printf("Serial number: %d, Capacitance: %.2f farads, Quantity: %d\n",
+               current_cond->num_serie, current_cond->capacite_farads, current_cond->quantity);
+        current_cond = current_cond->next;
+    }
+
+    // Log the task
+    write_to_security_log("Display Stock", "Displayed all components");
+}
+
+// Write to security log
+void write_to_security_log(const char* task, const char* details) {
+    FILE* file = fopen("security.txt", "a");
+    if (file == NULL) {
+        printf("Error opening security log file!\n");
+        return;
+    }
+
+    // Get current time
+    time_t now = time(NULL);
+    char timestamp[20];
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", localtime(&now));
+
+    // Write to file
+    fprintf(file, "[%s] %s: %s\n", timestamp, task, details);
+    fclose(file);
+}
+
+// Write components to fiche_compos.txt
+void write_to_fiche_compos(Stock* stock) {
+    FILE* file = fopen("fiche_compos.txt", "w");
+    if (file == NULL) {
+        printf("Error opening component file!\n");
+        return;
+    }
+
+    // Write resistors
+    Resistance* current_res = stock->resistances;
+    fprintf(file, "Resistors:\n");
+    while (current_res != NULL) {
+        fprintf(file, "Serial number: %d, Value: %.2f ohms, Quantity: %d\n",
+                current_res->num_serie, current_res->valeur_ohms, current_res->quantity);
+        current_res = current_res->next;
+    }
+
+    // Write diodes
+    Diode* current_diode = stock->diodes;
+    fprintf(file, "\nDiodes:\n");
+    while (current_diode != NULL) {
+        fprintf(file, "Serial number: %d, Quantity: %d\n",
+                current_diode->num_serie, current_diode->quantity);
+        current_diode = current_diode->next;
+    }
+
+    // Write capacitors
+    Condensateur* current_cond = stock->condensateurs;
+    fprintf(file, "\nCapacitors:\n");
+    while (current_cond != NULL) {
+        fprintf(file, "Serial number: %d, Capacitance: %.2f farads, Quantity: %d\n",
+                current_cond->num_serie, current_cond->capacite_farads, current_cond->quantity);
+        current_cond = current_cond->next;
+    }
+
+    fclose(file);
+}
+
+// Interactive menu
+void menu(Stock* stock) {
+    int choice;
+    int num_serie, quantity;
+    float valeur_ohms, capacite_farads;
+
+    while (1) {
+        printf("\n--- Stock Management Menu ---\n");
+        printf("1. Add a Resistor\n");
+        printf("2. Add a Diode\n");
+        printf("3. Add a Capacitor\n");
+        printf("4. Delete a Resistor\n");
+        printf("5. Delete a Diode\n");
+        printf("6. Delete a Capacitor\n");
+        printf("7. Display Stock\n");
+        printf("8. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter serial number: ");
+                scanf("%d", &num_serie);
+                printf("Enter value in ohms: ");
+                scanf("%f", &valeur_ohms);
+                printf("Enter quantity: ");
+                scanf("%d", &quantity);
+                add_resistance(stock, num_serie, valeur_ohms, quantity);
+                break;
+
+            case 2:
+                printf("Enter serial number: ");
+                scanf("%d", &num_serie);
+                printf("Enter quantity: ");
+                scanf("%d", &quantity);
+                add_diode(stock, num_serie, quantity);
+                break;
+
+            case 3:
+                printf("Enter serial number: ");
+                scanf("%d", &num_serie);
+                printf("Enter capacitance in farads: ");
+                scanf("%f", &capacite_farads);
+                printf("Enter quantity: ");
+                scanf("%d", &quantity);
+                add_condensateur(stock, num_serie, capacite_farads, quantity);
+                break;
+
+            case 4:
+                printf("Enter serial number of resistor to delete: ");
+                scanf("%d", &num_serie);
+                delete_resistance(stock, num_serie);
+                break;
+
+            case 5:
+                printf("Enter serial number of diode to delete: ");
+                scanf("%d", &num_serie);
+                delete_diode(stock, num_serie);
+                break;
+
+            case 6:
+                printf("Enter serial number of capacitor to delete: ");
+                scanf("%d", &num_serie);
+                delete_condensateur(stock, num_serie);
+                break;
+
+            case 7:
+                display_stock(stock);
+                break;
+
+            case 8:
+                printf("Exiting...\n");
+                exit(0);
+
+            default:
+                printf("Invalid choice! Please try again.\n");
+        }
+    }
+}
+
